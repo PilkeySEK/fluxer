@@ -26,6 +26,7 @@ import type {GuildAuditLogChange} from '../GuildAuditLogTypes';
 import {mapGuildBansToResponse} from '../GuildModel';
 import type {IGuildRepositoryAggregate} from '../repositories/IGuildRepositoryAggregate';
 import {GuildMemberSearchIndexService} from './member/GuildMemberSearchIndexService';
+import {UnknownUserError} from '@fluxer/errors/src/domains/user/UnknownUserError';
 
 export class GuildModerationService {
 	private readonly searchIndexService: GuildMemberSearchIndexService;
@@ -75,8 +76,12 @@ export class GuildModerationService {
 			});
 		}
 		const targetUser = await this.userRepository.findUnique(targetId);
-		const targetIp = targetUser?.lastActiveIp || null;
-		const targetEmail = targetUser?.email?.toLowerCase() || null;
+		// Don't allow banning nonexistent users
+		if (!targetUser) {
+			throw new UnknownUserError();
+		}
+		const targetIp = targetUser.lastActiveIp || null;
+		const targetEmail = targetUser.email?.toLowerCase() || null;
 		let expiresAt: Date | null = null;
 		if (banDurationSeconds && banDurationSeconds > 0) {
 			expiresAt = new Date(Date.now() + banDurationSeconds * 1000);
