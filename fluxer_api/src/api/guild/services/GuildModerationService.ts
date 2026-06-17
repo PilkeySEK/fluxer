@@ -76,7 +76,6 @@ export class GuildModerationService {
 			});
 		}
 		const targetUser = await this.userRepository.findUnique(targetId);
-		// Don't allow banning nonexistent users
 		if (!targetUser) {
 			throw new UnknownUserError();
 		}
