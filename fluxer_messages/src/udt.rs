@@ -9,6 +9,26 @@ use std::collections::HashSet;
     derive(scylla::DeserializeValue, scylla::SerializeValue)
 )]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessagePollChoiceUdt {
+    pub description: String,
+}
+
+#[cfg_attr(
+    feature = "scylla",
+    derive(scylla::DeserializeValue, scylla::SerializeValue)
+)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessagePollUdt {
+    pub title: String,
+    pub choice_type: i32,
+    pub choices: Vec<MessagePollChoiceUdt>,
+}
+
+#[cfg_attr(
+    feature = "scylla",
+    derive(scylla::DeserializeValue, scylla::SerializeValue)
+)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AttachmentUdt {
     pub attachment_id: Option<i64>,
     pub filename: Option<String>,

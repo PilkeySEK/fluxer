@@ -193,6 +193,20 @@ pub struct Message {
     pub call: Option<MessageCall>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_snapshots: Option<Vec<MessageSnapshot>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub poll: Option<MessagePoll>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessagePollChoice {
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessagePoll {
+    pub title: String,
+    pub choice_type: i32,
+    pub choices: Vec<MessagePollChoice>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -463,6 +477,8 @@ pub struct ApiMessageResponse {
     pub call: Option<ApiMessageCallResponse>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<ApiMessageResponse>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub poll: Option<MessagePoll>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

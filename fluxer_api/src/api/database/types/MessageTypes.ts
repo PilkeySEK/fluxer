@@ -187,7 +187,7 @@ export const MESSAGE_COLUMNS = [
 export interface MessagePoll {
 	title: string;
 	choice_type: MessagePollChoiceType;
-	choices: Array<{text: string; votes: number}>;
+	choices: Array<{description: string}>;
 }
 
 export interface ChannelPinRow {

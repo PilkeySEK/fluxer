@@ -240,7 +240,7 @@ export class MessageSendService {
 			hasPermission(Permissions.EMBED_LINKS),
 			hasPermission(Permissions.MENTION_EVERYONE),
 			hasPermission(Permissions.ATTACH_FILES),
-			hasPermission(Permissions.SEND_POLLS)
+			hasPermission(Permissions.SEND_POLLS),
 		]);
 		const hasFavoriteMeme = data.favorite_meme_id != null;
 		if (data.embeds && data.embeds.length > 0 && !canEmbedLinks) {
@@ -828,6 +828,10 @@ export class MessageSendService {
 				});
 			}
 		}
+		const hasPoll = data.poll !== null;
+		if (hasPoll && !canSendPolls) {
+			throw new MissingPermissionsError();
+		}
 		if (data.message_reference && referencedMessage && !isForwardMessage) {
 			const replyableTypes: ReadonlySet<Message['type']> = new Set([MessageTypes.DEFAULT, MessageTypes.REPLY]);
 			if (!replyableTypes.has(referencedMessage.type)) {
@@ -940,6 +944,7 @@ export class MessageSendService {
 			mentionData,
 			allowEmbeds: canEmbedLinks,
 			dmNsfwContext,
+			poll: data.poll,
 		});
 		this.cacheMentionChannels({
 			requestCache,

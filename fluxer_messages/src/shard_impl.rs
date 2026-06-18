@@ -3,18 +3,20 @@
 use crate::mention_extractor::{
     MessageMentions, extend_mentions_from_markdown, extract_mentions_from_markdown,
 };
-use crate::types::{
-    ApiChannelMentionResponse, ApiEmbedAuthorResponse, ApiEmbedFieldResponse,
-    ApiEmbedFooterResponse, ApiEmbedMediaResponse, ApiEmbedProviderResponse,
-    ApiMessageAttachmentResponse, ApiMessageCallResponse, ApiMessageEmbedChildResponse,
-    ApiMessageEmbedResponse, ApiMessageReactionResponse, ApiMessageReferenceResponse,
-    ApiMessageResponse, ApiMessageSnapshotResponse, ApiMessageStickerResponse,
-    ApiReactionEmojiResponse, ApiUserPartialResponse, Message, MessageAttachment, MessageCall,
-    MessageEmbed, MessageEmbedAuthor, MessageEmbedChild, MessageEmbedField, MessageEmbedFooter,
-    MessageEmbedMedia, MessageEmbedProvider, MessageReference, MessageRequest, MessageResponse,
-    MessageSnapshot, MessageStickerItem,
+use crate::{
+    types::{
+        ApiChannelMentionResponse, ApiEmbedAuthorResponse, ApiEmbedFieldResponse,
+        ApiEmbedFooterResponse, ApiEmbedMediaResponse, ApiEmbedProviderResponse,
+        ApiMessageAttachmentResponse, ApiMessageCallResponse, ApiMessageEmbedChildResponse,
+        ApiMessageEmbedResponse, ApiMessageReactionResponse, ApiMessageReferenceResponse,
+        ApiMessageResponse, ApiMessageSnapshotResponse, ApiMessageStickerResponse,
+        ApiReactionEmojiResponse, ApiUserPartialResponse, Message, MessageAttachment, MessageCall,
+        MessageEmbed, MessageEmbedAuthor, MessageEmbedChild, MessageEmbedField, MessageEmbedFooter,
+        MessageEmbedMedia, MessageEmbedProvider, MessagePoll, MessagePollChoice, MessageReference,
+        MessageRequest, MessageResponse, MessageSnapshot, MessageStickerItem,
+    },
+    udt,
 };
-use crate::udt;
 use base64::Engine;
 use chrono::{DateTime, Utc};
 use fluxer_svc::shard::ShardService;
@@ -130,6 +132,7 @@ struct MessageDbRow {
     message_reference: Option<udt::MessageReferenceUdt>,
     call: Option<udt::MessageCallUdt>,
     message_snapshots: Option<Vec<udt::MessageSnapshotUdt>>,
+    poll: Option<udt::MessagePollUdt>,
 }
 
 #[cfg_attr(feature = "scylla", derive(DeserializeRow))]
@@ -1166,6 +1169,7 @@ impl MessagesShard {
             nonce: options.nonce.clone(),
             call: message.call.as_ref().map(map_call),
             referenced_message,
+            poll: message.poll.clone(),
         }
     }
 
@@ -3039,6 +3043,17 @@ impl From<MessageDbRow> for Message {
             message_snapshots: row
                 .message_snapshots
                 .map(|v| v.into_iter().map(convert_message_snapshot).collect()),
+            poll: row.poll.map(|v| MessagePoll {
+                title: v.title,
+                choice_type: v.choice_type,
+                choices: v
+                    .choices
+                    .into_iter()
+                    .map(|v| MessagePollChoice {
+                        description: v.description,
+                    })
+                    .collect(),
+            }),
         }
     }
 }

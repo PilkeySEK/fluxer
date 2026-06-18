@@ -511,6 +511,32 @@
 			]
 		},
 		{
+			"name": "message_poll_choice",
+			"fields": [
+				{
+					"name": "description",
+					"type": "text"
+				}
+			]
+		},
+		{
+			"name": "message_poll",
+			"fields": [
+				{
+					"name": "title",
+					"type": "text"
+				},
+				{
+					"name": "choice_type",
+					"type": "int"
+				},
+				{
+					"name": "choices",
+					"type": "set<frozen<message_poll_choice>>"
+				}
+			]
+		},
+		{
 			"name": "message_snapshot",
 			"fields": [
 				{
@@ -6576,6 +6602,10 @@
 				{
 					"name": "nsfw_emojis",
 					"type": "set<bigint>"
+				},
+				{
+					"name": "poll",
+					"type": "frozen<message_poll>"
 				}
 			],
 			"primary_key": "((channel_id, bucket), message_id)",

@@ -119,8 +119,7 @@ export const MessagePollResponse = z.object({
 	choices: z.array(
 		z.object({
 			// TODO: emoji icon
-			text: z.string().min(1).max(50).describe('Description of this choice'),
-			votes: z.int().describe('How many users have voted for this option'),
+			description: z.string().min(1).max(50).describe('Description of this choice'),
 		}),
 	),
 });

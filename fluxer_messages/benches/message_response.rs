@@ -6,7 +6,7 @@ use fluxer_messages::types::{
     ApiEmbedFieldResponse, ApiEmbedMediaResponse, ApiMessageAttachmentResponse,
     ApiMessageEmbedChildResponse, ApiMessageEmbedResponse, ApiMessageReactionResponse,
     ApiMessageReferenceResponse, ApiMessageResponse, ApiReactionEmojiResponse,
-    ApiUserPartialResponse,
+    ApiUserPartialResponse, MessagePoll, MessagePollChoice,
 };
 use std::hint::black_box;
 
@@ -140,6 +140,18 @@ fn sample_message(index: u64) -> ApiMessageResponse {
         nonce: None,
         call: None,
         referenced_message: None,
+        poll: Some(MessagePoll {
+            title: "a or b".to_owned(),
+            choice_type: 0,
+            choices: vec![
+                MessagePollChoice {
+                    description: "a".to_owned(),
+                },
+                MessagePollChoice {
+                    description: "b".to_owned(),
+                },
+            ],
+        }),
     }
 }
 

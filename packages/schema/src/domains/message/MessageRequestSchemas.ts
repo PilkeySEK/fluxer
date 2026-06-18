@@ -7,7 +7,11 @@ import {
 	ClientAttachmentRequest,
 	ClientUploadedAttachmentRequest,
 } from '@fluxer/schema/src/domains/message/AttachmentSchemas';
-import {AllowedMentionsRequest, MessagePollChoiceType, MessageReferenceRequest} from '@fluxer/schema/src/domains/message/SharedMessageSchemas';
+import {
+	AllowedMentionsRequest,
+	MessagePollChoiceType,
+	MessageReferenceRequest,
+} from '@fluxer/schema/src/domains/message/SharedMessageSchemas';
 import {createQueryIntegerType, DateTimeType} from '@fluxer/schema/src/primitives/QueryValidators';
 import {
 	ColorType,
@@ -308,12 +312,15 @@ export type MessageContentRequest = z.infer<typeof MessageContentRequest>;
 export const MessagePollRequest = z.object({
 	title: z.string().describe('The title of the poll'),
 	choice_type: MessagePollChoiceType.describe('Whether this poll is single-choice or multiple-choice'),
-	choices: z.array(
-		z.object({
-			// TODO: emoji icon
-			text: z.string().min(1).max(50).describe('Description of this choice'),
-		}),
-	),
+	choices: z
+		.array(
+			z.object({
+				// TODO: emoji icon
+				description: z.string().min(1).max(50).describe('Description of this choice'),
+			}),
+		)
+		.min(1)
+		.max(15),
 });
 
 export type MessagePollRequest = z.infer<typeof MessagePollRequest>;

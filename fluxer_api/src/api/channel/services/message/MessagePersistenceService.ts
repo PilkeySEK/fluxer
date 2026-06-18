@@ -19,6 +19,7 @@ import {getContentMessage} from '../../../content_i18n/ContentI18n';
 import type {
 	MessageAttachment,
 	MessageEmbed,
+	MessagePoll,
 	MessageReference,
 	MessageStickerItem,
 } from '../../../database/types/MessageTypes';
@@ -104,6 +105,7 @@ interface CreateMessageParams {
 	};
 	allowEmbeds?: boolean;
 	dmNsfwContext?: DmNsfwContext;
+	poll?: MessagePoll | null;
 }
 
 export class MessagePersistenceService {
@@ -250,6 +252,7 @@ export class MessagePersistenceService {
 			call: null,
 			nsfw_emojis: nsfwEmojiIds.size > 0 ? nsfwEmojiIds : null,
 			has_reaction: false,
+			poll: params.poll || null,
 			version: 1,
 		};
 		const message = await this.channelRepository.messages.upsertMessage(messageRowData);
