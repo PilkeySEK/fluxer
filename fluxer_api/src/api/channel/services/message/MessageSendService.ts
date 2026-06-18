@@ -234,17 +234,23 @@ export class MessageSendService {
 		canEmbedLinks: boolean;
 		canMentionEveryone: boolean;
 		canAttachFiles: boolean;
+		canSendPolls: boolean;
 	}> {
-		const [canEmbedLinks, canMentionEveryone, canAttachFiles] = await Promise.all([
+		const [canEmbedLinks, canMentionEveryone, canAttachFiles, canSendPolls] = await Promise.all([
 			hasPermission(Permissions.EMBED_LINKS),
 			hasPermission(Permissions.MENTION_EVERYONE),
 			hasPermission(Permissions.ATTACH_FILES),
+			hasPermission(Permissions.SEND_POLLS)
 		]);
 		const hasFavoriteMeme = data.favorite_meme_id != null;
 		if (data.embeds && data.embeds.length > 0 && !canEmbedLinks) {
 			throw new MissingPermissionsError();
 		}
 		if (hasFavoriteMeme && (!canEmbedLinks || !canAttachFiles)) {
+			throw new MissingPermissionsError();
+		}
+		const hasPoll = data.poll !== null;
+		if (hasPoll && !canSendPolls) {
 			throw new MissingPermissionsError();
 		}
 		if (guild) {
@@ -266,7 +272,7 @@ export class MessageSendService {
 		} else if (channel.type === ChannelTypes.DM || channel.type === ChannelTypes.GROUP_DM) {
 			await this.deps.channelAuthService.validateDMSendPermissions({channelId, userId: user.id});
 		}
-		return {canEmbedLinks, canMentionEveryone, canAttachFiles};
+		return {canEmbedLinks, canMentionEveryone, canAttachFiles, canSendPolls};
 	}
 
 	async validateMessageCanBeSent({
@@ -762,7 +768,7 @@ export class MessageSendService {
 			return this.sendPersonalNoteMessage({user, channelId, data, requestCache});
 		}
 		const {channel, guild, checkPermission, hasPermission, member} = authChannel;
-		const {canEmbedLinks, canMentionEveryone, canAttachFiles} = await this.checkMessageSendPermissions({
+		const {canEmbedLinks, canMentionEveryone, canAttachFiles, canSendPolls} = await this.checkMessageSendPermissions({
 			guild,
 			member,
 			channel,

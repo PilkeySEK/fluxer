@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import type {MessagePollChoiceType} from '@fluxer/schema/src/domains/message/SharedMessageSchemas';
 import type {
 	AttachmentID,
 	ChannelID,
@@ -150,6 +151,7 @@ export interface MessageRow {
 	call: Nullish<MessageCall>;
 	nsfw_emojis: Nullish<Set<EmojiID>>;
 	has_reaction: Nullish<boolean>;
+	poll: Nullish<MessagePoll>;
 	version: number;
 }
 
@@ -178,8 +180,15 @@ export const MESSAGE_COLUMNS = [
 	'call',
 	'nsfw_emojis',
 	'has_reaction',
+	'poll',
 	'version',
 ] as const satisfies ReadonlyArray<keyof MessageRow>;
+
+export interface MessagePoll {
+	title: string;
+	choice_type: MessagePollChoiceType;
+	choices: Array<{text: string; votes: number}>;
+}
 
 export interface ChannelPinRow {
 	channel_id: ChannelID;

@@ -2,7 +2,7 @@
 
 import type {MessageTypeValue} from '@fluxer/constants/src/ChannelConstants';
 import type {ChannelID, EmojiID, MessageID, RoleID, UserID, WebhookID} from '../BrandedTypes';
-import type {MessageRow} from '../database/types/MessageTypes';
+import type {MessagePoll, MessageRow} from '../database/types/MessageTypes';
 import {Attachment} from './Attachment';
 import {CallInfo} from './CallInfo';
 import {Embed} from './Embed';
@@ -35,6 +35,7 @@ export class Message {
 	readonly call: CallInfo | null;
 	readonly nsfwEmojis: Set<EmojiID>;
 	readonly hasReaction: boolean | null;
+	readonly poll: MessagePoll | null;
 	readonly version: number;
 
 	constructor(row: MessageRow) {
@@ -68,6 +69,7 @@ export class Message {
 		this.call = row.call ? new CallInfo(row.call) : null;
 		this.nsfwEmojis = row.nsfw_emojis ?? new Set();
 		this.hasReaction = row.has_reaction ?? null;
+		this.poll = row.poll;
 		this.version = row.version;
 	}
 
@@ -98,6 +100,7 @@ export class Message {
 			call: this.call?.toMessageCall() ?? null,
 			nsfw_emojis: this.nsfwEmojis.size > 0 ? this.nsfwEmojis : null,
 			has_reaction: this.hasReaction ?? null,
+			poll: this.poll,
 			version: this.version,
 		};
 	}
