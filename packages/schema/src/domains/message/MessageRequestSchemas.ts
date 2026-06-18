@@ -7,7 +7,7 @@ import {
 	ClientAttachmentRequest,
 	ClientUploadedAttachmentRequest,
 } from '@fluxer/schema/src/domains/message/AttachmentSchemas';
-import {AllowedMentionsRequest, MessageReferenceRequest} from '@fluxer/schema/src/domains/message/SharedMessageSchemas';
+import {AllowedMentionsRequest, MessagePollChoiceType, MessageReferenceRequest} from '@fluxer/schema/src/domains/message/SharedMessageSchemas';
 import {createQueryIntegerType, DateTimeType} from '@fluxer/schema/src/primitives/QueryValidators';
 import {
 	ColorType,
@@ -305,6 +305,19 @@ export const MessageContentRequest = createUnboundedStringType().describe(MESSAG
 
 export type MessageContentRequest = z.infer<typeof MessageContentRequest>;
 
+export const MessagePollRequest = z.object({
+	title: z.string().describe('The title of the poll'),
+	choice_type: MessagePollChoiceType.describe('Whether this poll is single-choice or multiple-choice'),
+	choices: z.array(
+		z.object({
+			// TODO: emoji icon
+			text: z.string().min(1).max(50).describe('Description of this choice'),
+		}),
+	),
+});
+
+export type MessagePollRequest = z.infer<typeof MessagePollRequest>;
+
 export const MessageRequestSchema = z
 	.object({
 		content: MessageContentRequest.nullish(),
@@ -326,6 +339,7 @@ export const MessageRequestSchema = z
 		favorite_meme_id: SnowflakeType.nullish().describe('ID of a favorite meme to attach'),
 		sticker_ids: z.array(SnowflakeType).max(3).nullish().describe('Array of sticker IDs to include (max 3)'),
 		tts: z.boolean().optional().describe('Whether this is a text-to-speech message'),
+		poll: MessagePollRequest.nullish().describe('An attached poll'),
 	})
 	.partial();
 

@@ -13,6 +13,7 @@ import {type UserPartial, UserPartialResponse} from '@fluxer/schema/src/domains/
 import {MessageReferenceTypeSchema, MessageTypeSchema} from '@fluxer/schema/src/primitives/MessageValidators';
 import {createBitflagInt32Type, Int32Type, SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
+import {MessagePollChoiceType} from './SharedMessageSchemas';
 
 export const MessageAttachmentResponse = z.object({
 	id: SnowflakeStringType.describe('The unique identifier for this attachment'),
@@ -112,6 +113,20 @@ const MessageCallResponse = z.object({
 	ended_timestamp: z.iso.datetime().nullish().describe('The ISO 8601 timestamp of when the call ended'),
 });
 
+export const MessagePollResponse = z.object({
+	title: z.string().describe('The title of the poll'),
+	choice_type: MessagePollChoiceType.describe('Whether this poll is single-choice or multiple-choice'),
+	choices: z.array(
+		z.object({
+			// TODO: emoji icon
+			text: z.string().min(1).max(50).describe('Description of this choice'),
+			votes: z.int().describe('How many users have voted for this option'),
+		}),
+	),
+});
+
+export type MessagePollResponse = z.infer<typeof MessagePollResponse>;
+
 const MessageBaseResponseSchema = z.object({
 	id: SnowflakeStringType.describe('The unique identifier (snowflake) for this message'),
 	channel_id: SnowflakeStringType.describe('The ID of the channel this message was sent in'),
@@ -154,6 +169,7 @@ const MessageBaseResponseSchema = z.object({
 	message_snapshots: z.array(MessageSnapshotResponse).nullish().describe('Snapshots of forwarded messages'),
 	nonce: z.string().nullish().describe('A client-provided value for message deduplication'),
 	call: MessageCallResponse.nullish().describe('Call information if this message represents a call'),
+	poll: MessagePollResponse.nullish().describe('An attached poll'),
 });
 
 type MessageBaseResponse = z.infer<typeof MessageBaseResponseSchema>;

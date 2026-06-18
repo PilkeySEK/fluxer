@@ -52,3 +52,10 @@ export const MessageReferenceRequest = z
 	);
 
 export type MessageReferenceRequest = z.infer<typeof MessageReferenceRequest>;
+
+export const MessagePollChoiceType = z.enum({
+	SingleChoice: 0,
+	MultipleChoice: 1,
+} as const);
+
+export type MessagePollChoiceType = z.infer<typeof MessagePollChoiceType>;
