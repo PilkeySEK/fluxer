@@ -13,6 +13,7 @@ import type {UserRow} from '../../../../database/types/UserTypes';
 import {EMPTY_USER_ROW, USER_COLUMNS} from '../../../../database/types/UserTypes';
 import {User} from '../../../../models/User';
 import {Users} from '../../../../Tables';
+import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 
 const FLUXER_BOT_USER_ID = 0n;
 const DELETED_USER_ID = 1n;
@@ -47,10 +48,11 @@ type UserPatch = Partial<{
 export class UserDataRepository {
 	async findUnique(userId: UserID): Promise<User | null> {
 		if (userId === FLUXER_BOT_USER_ID) {
+			const product_name = (await getInstanceConfigRepository().getAppPublicConfig()).branding.product_name;
 			return new User({
 				...EMPTY_USER_ROW,
 				user_id: createUserID(FLUXER_BOT_USER_ID),
-				username: 'Fluxer',
+				username: product_name,
 				discriminator: 0,
 				bot: true,
 				system: true,
