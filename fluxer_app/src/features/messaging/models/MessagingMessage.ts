@@ -24,6 +24,7 @@ import type {
 	MessageAttachment,
 	MessageCall,
 	MessageMention,
+	MessagePollResponse,
 	MessageReaction,
 	MessageReference,
 	MessageSnapshot,
@@ -170,6 +171,7 @@ export class Message {
 	readonly _allowedMentions?: AllowedMentions;
 	readonly _favoriteMemeId?: string;
 	readonly stickers?: ReadonlyArray<MessageStickerItem>;
+	readonly poll?: MessagePollResponse;
 
 	constructor(message: MessageInput, options?: MessageRecordOptions) {
 		this.instanceId = options?.instanceId ?? RuntimeConfig.localInstanceDomain;
@@ -241,6 +243,7 @@ export class Message {
 		this._allowedMentions = message._allowedMentions;
 		this._favoriteMemeId = message._favoriteMemeId;
 		this.stickers = message.stickers ? Object.freeze(message.stickers) : undefined;
+		this.poll = message.poll ? Object.freeze(message.poll) : undefined;
 	}
 
 	hasFlag(flag: number): boolean {
@@ -340,6 +343,7 @@ export class Message {
 				blocked: updates.blocked ?? this.blocked,
 				_allowedMentions: updates._allowedMentions ?? this._allowedMentions,
 				_favoriteMemeId: updates._favoriteMemeId ?? this._favoriteMemeId,
+				poll: updates.poll ?? this.poll,
 			},
 			{skipUserCache: true, instanceId: this.instanceId},
 		);
@@ -412,6 +416,7 @@ export class Message {
 		if (this.invites.length !== other.invites.length) return false;
 		if (this.gifts.length !== other.gifts.length) return false;
 		if (this.themes.length !== other.themes.length) return false;
+		if (JSON.stringify(this.poll) !== JSON.stringify(other.poll)) return false;
 		for (let i = 0; i < this.mentions.length; i++) {
 			if (!this.mentions[i].equals(other.mentions[i])) return false;
 		}
@@ -546,6 +551,7 @@ export class Message {
 			blocked: this.blocked,
 			_allowedMentions: this._allowedMentions,
 			_favoriteMemeId: this._favoriteMemeId,
+			poll: this.poll,
 		};
 	}
 }

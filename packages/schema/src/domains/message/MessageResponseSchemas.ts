@@ -373,4 +373,5 @@ export interface Message {
 	readonly blocked?: boolean;
 	readonly _allowedMentions?: AllowedMentions;
 	readonly _favoriteMemeId?: string;
+	readonly poll?: MessagePollResponse | null;
 }
