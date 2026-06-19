@@ -82,6 +82,7 @@ export type DeveloperOptionsState = Readonly<{
 	mockRequiredActionsReverify: boolean;
 	forceNoSendMessages: boolean;
 	forceNoAttachFiles: boolean;
+	forceNoSendPolls: boolean;
 	mockSlowmodeActive: boolean;
 	mockSlowmodeRemaining: number;
 	mockGiftInventory: boolean | null;
@@ -166,6 +167,7 @@ class DeveloperOptions implements DeveloperOptionsState {
 	mockRequiredActionsReverify = false;
 	forceNoSendMessages = false;
 	forceNoAttachFiles = false;
+	forceNoSendPolls = false;
 	mockSlowmodeActive = false;
 	mockSlowmodeRemaining = 10000;
 	mockAttachmentStates: Record<
@@ -244,6 +246,7 @@ class DeveloperOptions implements DeveloperOptionsState {
 			'mockRequiredActionsReverify',
 			'forceNoSendMessages',
 			'forceNoAttachFiles',
+			'forceNoSendPolls',
 			'mockSlowmodeActive',
 			'mockSlowmodeRemaining',
 			'mockGiftInventory',

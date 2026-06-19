@@ -115,6 +115,7 @@ import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
+import {SendPollModal} from '@app/features/guild/components/modals/SendPollModal';
 
 const PLUS_MENU_DOUBLE_CLICK_MS = 500;
 
@@ -126,6 +127,7 @@ const ChannelTextareaContent = observer(
 		disabled,
 		inputSuppressed = false,
 		canAttachFiles,
+		canSendPolls,
 		canSendFavoriteMemeId,
 	}: {
 		channel: Channel;
@@ -134,6 +136,7 @@ const ChannelTextareaContent = observer(
 		disabled: boolean;
 		inputSuppressed?: boolean;
 		canAttachFiles: boolean;
+		canSendPolls: boolean;
 		canSendFavoriteMemeId: boolean;
 	}) => {
 		const {i18n} = useLingui();
@@ -600,6 +603,12 @@ const ChannelTextareaContent = observer(
 			setValue('');
 			DraftCommands.deleteDraft(channel.id);
 		}, [textareaInputDisabled, canAttachFiles, value, channel.id, uploadAttachments.length, maxAttachments]);
+		const handleSendPoll = useCallback(() => {
+			if (textareaInputDisabled || !canSendPolls) {
+				return;
+			}
+			ModalCommands.push(modal(() => <SendPollModal data-flx="channel.send-poll-modal" />));
+		}, [textareaInputDisabled, canSendPolls, channel.id]);
 		useTextareaExpressionHandlers({
 			setValue,
 			textareaRef,
@@ -901,6 +910,8 @@ const ChannelTextareaContent = observer(
 							canSchedule={canScheduleMessage}
 							canAttachFiles={canAttachFiles}
 							canSendMessages={!textareaInputDisabled}
+							canSendPolls={canSendPolls}
+							onSendPoll={handleSendPoll}
 							textareaValue={value}
 							onUploadAsFile={handleUploadMessageAsFile}
 							onSendVoiceMessage={
@@ -1283,6 +1294,7 @@ export const ChannelTextarea = observer(
 		const draftSegments = Drafts.getDraftSegments(channel.id);
 		const forceNoSendMessages = DeveloperOptions.forceNoSendMessages;
 		const forceNoAttachFiles = DeveloperOptions.forceNoAttachFiles;
+		const forceNoSendPolls = DeveloperOptions.forceNoSendPolls;
 		const disabled = channel.isPrivate()
 			? forceNoSendMessages
 			: forceNoSendMessages ||
@@ -1293,6 +1305,9 @@ export const ChannelTextarea = observer(
 			: !forceNoAttachFiles && Permission.can(Permissions.ATTACH_FILES, channel);
 		const canEmbedLinks = channel.isPrivate() ? true : Permission.can(Permissions.EMBED_LINKS, channel);
 		const canSendFavoriteMemeId = canAttachFiles && canEmbedLinks;
+		const canSendPolls = channel.isPrivate()
+			? !forceNoSendPolls
+			: !forceNoSendPolls && Permission.can(Permissions.SEND_POLLS, channel);
 		return (
 			<ChannelTextareaContent
 				key={channel.id}
@@ -1301,6 +1316,7 @@ export const ChannelTextarea = observer(
 				inputSuppressed={inputSuppressed}
 				canAttachFiles={canAttachFiles}
 				canSendFavoriteMemeId={canSendFavoriteMemeId}
+				canSendPolls={canSendPolls}
 				draft={draft}
 				draftSegments={draftSegments}
 				data-flx="channel.channel-textarea.channel-textarea-content"
