@@ -56,6 +56,10 @@ export class GuildModerationService {
 		auditLogReason?: string | null,
 	): Promise<void> {
 		const {userId, guildId, targetId, deleteMessageDays, reason, banDurationSeconds, skipGuildAuditLog} = params;
+		const targetUser = await this.userRepository.findUnique(targetId);
+		if (!targetUser) {
+			throw new UnknownUserError();
+		}
 		const hasPermission = await this.gatewayService.checkPermission({
 			guildId,
 			userId,
@@ -74,10 +78,6 @@ export class GuildModerationService {
 				userId: targetId.toString(),
 				days: deleteMessageDays,
 			});
-		}
-		const targetUser = await this.userRepository.findUnique(targetId);
-		if (!targetUser) {
-			throw new UnknownUserError();
 		}
 		const targetIp = targetUser.lastActiveIp || null;
 		const targetEmail = targetUser.email?.toLowerCase() || null;
