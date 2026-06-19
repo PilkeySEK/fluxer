@@ -8,6 +8,7 @@ import {MissingPermissionsError} from '@fluxer/errors/src/domains/core/MissingPe
 import {BannedFromGuildError} from '@fluxer/errors/src/domains/guild/BannedFromGuildError';
 import {IpBannedFromGuildError} from '@fluxer/errors/src/domains/guild/IpBannedFromGuildError';
 import {UnknownGuildMemberError} from '@fluxer/errors/src/domains/guild/UnknownGuildMemberError';
+import {UnknownUserError} from '@fluxer/errors/src/domains/user/UnknownUserError';
 import {isSameIpDecisionMatch} from '@fluxer/ip_utils/src/IpAddress';
 import type {GuildBanResponse} from '@fluxer/schema/src/domains/guild/GuildMemberSchemas';
 import type {IpInfoService} from '@pkgs/geoip/src/IpInfoService';
@@ -26,7 +27,6 @@ import type {GuildAuditLogChange} from '../GuildAuditLogTypes';
 import {mapGuildBansToResponse} from '../GuildModel';
 import type {IGuildRepositoryAggregate} from '../repositories/IGuildRepositoryAggregate';
 import {GuildMemberSearchIndexService} from './member/GuildMemberSearchIndexService';
-import {UnknownUserError} from '@fluxer/errors/src/domains/user/UnknownUserError';
 
 export class GuildModerationService {
 	private readonly searchIndexService: GuildMemberSearchIndexService;
@@ -56,10 +56,6 @@ export class GuildModerationService {
 		auditLogReason?: string | null,
 	): Promise<void> {
 		const {userId, guildId, targetId, deleteMessageDays, reason, banDurationSeconds, skipGuildAuditLog} = params;
-		const targetUser = await this.userRepository.findUnique(targetId);
-		if (!targetUser) {
-			throw new UnknownUserError();
-		}
 		const hasPermission = await this.gatewayService.checkPermission({
 			guildId,
 			userId,
@@ -67,6 +63,10 @@ export class GuildModerationService {
 		});
 		if (!hasPermission) throw new MissingPermissionsError();
 		if (userId === targetId) throw new UnknownGuildMemberError();
+		const targetUser = await this.userRepository.findUnique(targetId);
+		if (!targetUser) {
+			throw new UnknownUserError();
+		}
 		const targetMember = await this.guildRepository.getMember(guildId, targetId);
 		if (targetMember) {
 			const canManage = await this.gatewayService.checkTargetMember({guildId, userId, targetUserId: targetId});
