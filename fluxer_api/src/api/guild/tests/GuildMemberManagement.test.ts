@@ -201,7 +201,7 @@ describe('Guild Member Management', () => {
 		await createBuilder(harness, owner.token)
 			.put(`/guilds/${guild.id}/bans/${nonExistentId}`)
 			.body({})
-			.expect(HTTP_STATUS.NO_CONTENT)
+			.expect(HTTP_STATUS.NOT_FOUND)
 			.execute();
 	});
 	test('should fall back to audit log reason header when ban reason is omitted', async () => {
