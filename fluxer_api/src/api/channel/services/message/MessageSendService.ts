@@ -249,7 +249,7 @@ export class MessageSendService {
 		if (hasFavoriteMeme && (!canEmbedLinks || !canAttachFiles)) {
 			throw new MissingPermissionsError();
 		}
-		const hasPoll = data.poll !== null;
+		const hasPoll = !!data.poll;
 		if (hasPoll && !canSendPolls) {
 			throw new MissingPermissionsError();
 		}
@@ -828,7 +828,7 @@ export class MessageSendService {
 				});
 			}
 		}
-		const hasPoll = data.poll !== null;
+		const hasPoll = !!data.poll;
 		if (hasPoll && !canSendPolls) {
 			throw new MissingPermissionsError();
 		}

@@ -90,6 +90,11 @@ const BYPASS_SLOWMODE_PERMISSION_DESCRIPTION_DESCRIPTOR = msg({
 	comment:
 		'Permission description in the role/permission editor for the Bypass Slowmode permission. Slowmode is the per-channel cooldown between messages.',
 });
+const SEND_POLLS_PERMISSION_DESCRIPTION_DESCRIPTOR = msg({
+	message: 'Create and send polls in channels.',
+	comment:
+		'Permission description in the role/permission editor for the Send Polls permission. Note that members can vote in polls even without this permission.',
+});
 const TIME_OUT_MEMBERS_PERMISSION_DESCRIPTION_DESCRIPTOR = msg({
 	message: 'Prevent members from sending messages, reacting, and joining voice for a duration.',
 	comment:
@@ -129,6 +134,11 @@ const VIEW_CHANNEL_MEMBERS_CHANNEL_PERMISSION_DESCRIPTION_DESCRIPTOR = msg({
 	message: 'See the member list for this channel.',
 	comment:
 		'Permission description in the channel-scoped permissions editor for the View Channel Members permission. Scoped to a single channel.',
+});
+const SEND_POLLS_CHANNEL_PERMISSION_DESCRIPTION_DESCRIPTOR = msg({
+	message: 'Create and send polls in this channel.',
+	comment:
+		'Permission description in the role/permission editor for the Send Polls permission. Note that members can vote in polls even without this permission.',
 });
 const COMMUNITY_WIDE_DESCRIPTOR = msg({
 	message: 'Community-wide',
@@ -250,6 +260,10 @@ const BYPASS_SLOWMODE_DESCRIPTOR = msg({
 	message: 'Bypass slowmode',
 	comment: 'Permission name: allows ignoring per-channel message rate limits.',
 });
+const SEND_POLLS_DESCRIPTOR = msg({
+	message: 'Send polls',
+	comment: 'Permission name: allows sending polls.',
+});
 const TIME_OUT_MEMBERS_DESCRIPTOR = msg({
 	message: 'Time out members',
 	comment: 'Permission name: allows temporarily restricting members.',
@@ -357,6 +371,7 @@ const PERMISSION_TITLE_DESCRIPTORS = new Map<bigint, MessageDescriptor>([
 	[Permissions.USE_EXTERNAL_STICKERS, USE_EXTERNAL_STICKERS_DESCRIPTOR],
 	[Permissions.ADD_REACTIONS, ADD_REACTIONS_DESCRIPTOR],
 	[Permissions.BYPASS_SLOWMODE, BYPASS_SLOWMODE_DESCRIPTOR],
+	[Permissions.SEND_POLLS, SEND_POLLS_DESCRIPTOR],
 	[Permissions.MODERATE_MEMBERS, TIME_OUT_MEMBERS_DESCRIPTOR],
 	[Permissions.VIEW_CHANNEL, VIEW_CHANNEL_DESCRIPTOR],
 	[Permissions.VIEW_CHANNEL_MEMBERS, VIEW_CHANNEL_MEMBERS_DESCRIPTOR],
@@ -387,6 +402,7 @@ const PERMISSION_DESCRIPTION_DESCRIPTORS = new Map<bigint, MessageDescriptor>([
 	[Permissions.USE_EXTERNAL_EMOJIS, USE_EXTERNAL_EMOJI_PERMISSION_DESCRIPTION_DESCRIPTOR],
 	[Permissions.ADD_REACTIONS, ADD_REACTIONS_PERMISSION_DESCRIPTION_DESCRIPTOR],
 	[Permissions.BYPASS_SLOWMODE, BYPASS_SLOWMODE_PERMISSION_DESCRIPTION_DESCRIPTOR],
+	[Permissions.SEND_POLLS, SEND_POLLS_PERMISSION_DESCRIPTION_DESCRIPTOR],
 	[Permissions.MODERATE_MEMBERS, TIME_OUT_MEMBERS_PERMISSION_DESCRIPTION_DESCRIPTOR],
 	[Permissions.VIEW_CHANNEL_MEMBERS, VIEW_CHANNEL_MEMBERS_GUILD_PERMISSION_DESCRIPTION_DESCRIPTOR],
 	[Permissions.USE_VAD, USE_VOICE_ACTIVITY_PERMISSION_DESCRIPTION_DESCRIPTOR],
@@ -401,6 +417,7 @@ const CHANNEL_PERMISSION_DESCRIPTION_OVERRIDES = new Map<bigint, MessageDescript
 	[Permissions.MANAGE_ROLES, MANAGE_PERMISSIONS_CHANNEL_PERMISSION_DESCRIPTION_DESCRIPTOR],
 	[Permissions.MANAGE_WEBHOOKS, MANAGE_WEBHOOKS_CHANNEL_PERMISSION_DESCRIPTION_DESCRIPTOR],
 	[Permissions.VIEW_CHANNEL_MEMBERS, VIEW_CHANNEL_MEMBERS_CHANNEL_PERMISSION_DESCRIPTION_DESCRIPTOR],
+	[Permissions.SEND_POLLS, SEND_POLLS_CHANNEL_PERMISSION_DESCRIPTION_DESCRIPTOR],
 ]);
 
 export function getPermissionTitleDescriptor(
