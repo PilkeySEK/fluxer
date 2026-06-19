@@ -28,4 +28,8 @@ export const InviteRateLimitConfigs = {
 		bucket: 'invite:list::guild_id',
 		config: {limit: 40, windowMs: ms('10 seconds')},
 	} as RouteRateLimitConfig,
+	INVITE_BUNDLE_CREATE: {
+		bucket: 'invite_bundle:create',
+		config: {limit: 10, windowMs: ms('1 minute')},
+	} as RouteRateLimitConfig,
 } as const;

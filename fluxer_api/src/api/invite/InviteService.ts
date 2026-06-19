@@ -17,11 +17,13 @@ import {UnknownPackError} from '@fluxer/errors/src/domains/pack/UnknownPackError
 import type {
 	GroupDmInviteMetadataResponse,
 	GuildInviteMetadataResponse,
+	InviteBundleCreateRequest,
+	InviteBundleMetadataResponse,
 	PackInviteMetadataResponse,
 } from '@fluxer/schema/src/domains/invite/InviteSchemas';
 import type {ApiContext} from '../ApiContext';
 import type {ChannelID, GuildID, InviteCode, UserID} from '../BrandedTypes';
-import {createInviteCode, vanityCodeToInviteCode} from '../BrandedTypes';
+import {createChannelID, createInviteCode, vanityCodeToInviteCode} from '../BrandedTypes';
 import type {ChannelService} from '../channel/services/ChannelService';
 import type {GuildAuditLogService} from '../guild/GuildAuditLogService';
 import type {GuildService} from '../guild/services/GuildService';
@@ -36,6 +38,10 @@ import type {PackRepository, PackType} from '../pack/PackRepository';
 import type {PackService} from '../pack/PackService';
 import * as RandomUtils from '../utils/RandomUtils';
 import type {IInviteRepository} from './IInviteRepository';
+import {BadRequestError} from '@fluxer/errors/src/HttpErrors';
+import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
+import type {GuildPartialResponse, GuildResponse} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
+import type { ChannelPartialResponse } from '@fluxer/schema/src/domains/channel/ChannelSchemas';
 
 interface GetChannelInvitesParams {
 	userId: UserID;
@@ -561,6 +567,87 @@ export class InviteService {
 				}
 			}
 		}
+	}
+
+	async createInviteBundle(
+		inviterId: UserID,
+		data: InviteBundleCreateRequest,
+		auditLogReason?: string | null,
+	): Promise<InviteBundleMetadataResponse> {
+		const channelsAndGuilds: Map<GuildID, [Channel, GuildResponse]> = new Map();
+		for (const channelIdString of data.channel_ids) {
+			const channelId = createChannelID(BigInt(channelIdString));
+			const channel = await this.channelService.channelData.operations.getChannel({userId: inviterId, channelId});
+			if (!channel.guildId) {
+				throw new BadRequestError({
+					code: APIErrorCodes.INVALID_CHANNEL_TYPE,
+					message: 'Channel must be a guild channel',
+				});
+			}
+			const hasPermission = await this.apiContext.services.gateway.checkPermission({
+				guildId: channel.guildId,
+				userId: inviterId,
+				permission: Permissions.CREATE_INSTANT_INVITE,
+				channelId: channel.id,
+			});
+			if (!hasPermission) {
+				throw new MissingPermissionsError();
+			}
+			const {guildData} = await this.guildService.getGuildAuthenticated({
+				userId: inviterId,
+				guildId: channel.guildId,
+			});
+			const existingInvites = await this.inviteRepository.listGuildInvites(channel.guildId);
+			const inviteLimit = this.resolveInviteLimit(guildData.features);
+			if (existingInvites.length >= inviteLimit) {
+				throw new MaxGuildInvitesError(inviteLimit);
+			}
+			if (channelsAndGuilds.has(channel.guildId)) {
+				throw new BadRequestError();
+			}
+			channelsAndGuilds.set(channel.guildId, [channel, guildData]);
+		}
+		const invites: Array<Invite> = [];
+		for (const [guildId, [channel, _guild]] of channelsAndGuilds) {
+			const invite = await this.inviteRepository.create({
+				code: this.createRandomInviteCode(),
+				type: InviteTypes.GUILD,
+				guild_id: guildId,
+				channel_id: channel.id,
+				inviter_id: inviterId,
+				uses: 0,
+				max_uses: data.max_uses ?? 0,
+				max_age: data.max_age ?? 0,
+				temporary: false,
+			});
+			await this.logGuildInviteAction({
+				invite,
+				userId: inviterId,
+				action: 'create',
+				auditLogReason,
+			});
+			invites.push(invite);
+		}
+		// TODO: Actually create it in the database (and send code)
+		return {
+			max_uses: data.max_uses,
+			max_age: data.max_age,
+			guilds: channelsAndGuilds.values().map(([channel, guild]) => {
+				return {
+					guild: {
+						id: guild.id,
+						name: guild.name,
+						icon: guild.icon,
+					} as GuildPartialResponse,
+					channel: {
+						id: channel.id.toString(),
+						name: channel.name,
+						type: channel.type,
+						recipients: undefined,
+					} as ChannelPartialResponse,
+				};
+			}).toArray(),
+		};
 	}
 
 	private async logGuildInviteAction(params: {

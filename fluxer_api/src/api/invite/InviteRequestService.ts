@@ -6,6 +6,8 @@ import type {ChannelPartialResponse} from '@fluxer/schema/src/domains/channel/Ch
 import type {GuildPartialResponse} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
 import type {
 	ChannelInviteCreateRequest,
+	InviteBundleCreateRequest,
+	InviteBundleMetadataResponse,
 	InviteMetadataResponseSchema,
 	InviteResponseSchema,
 	PackInviteCreateRequest,
@@ -162,6 +164,19 @@ export class InviteRequestService {
 			await this.inviteService.dispatchInviteCreate(invite, inviteData);
 		}
 		return inviteData;
+	}
+
+	async createInviteBundle(params: {
+		inviterId: UserID,
+		data: InviteBundleCreateRequest,
+	}, auditLogReason?: string | null): Promise<InviteBundleMetadataResponse> {
+		const invite = await this.inviteService.createInviteBundle(
+			params.inviterId,
+			params.data,
+			auditLogReason,
+		);
+		// TODO: Dispatch via gateway
+		return invite;
 	}
 
 	private createMappingHelpers(requestCache: RequestCache): MappingHelpers {

@@ -8,6 +8,8 @@ import {
 } from '@fluxer/schema/src/domains/common/CommonParamSchemas';
 import {
 	ChannelInviteCreateRequest,
+	InviteBundleCreateRequest,
+	InviteBundleMetadataResponse,
 	InviteMetadataResponseSchema,
 	InviteResponseSchema,
 	PackInviteCreateRequest,
@@ -224,6 +226,37 @@ export function InviteController(app: HonoApp) {
 					requestCache,
 					data: ctx.req.valid('json'),
 				}),
+			);
+		},
+	);
+	app.post(
+		'/invite-bundles',
+		RateLimitMiddleware(RateLimitConfigs.INVITE_BUNDLE_CREATE),
+		LoginRequired,
+		DefaultUserOnly,
+		Validator('json', InviteBundleCreateRequest),
+		OpenAPI({
+			operationId: 'create_invite_bundle',
+			summary: 'Create invite bundle',
+			description:
+				'Creates a new invite bundle for the specified guild channels, with expiration and maximum uses parameters. The authenticated user must have permission to create invites for all of the guild channels and must be a default (non-bot) user. Returns the created invite metadata including the code.',
+			responseSchema: InviteBundleMetadataResponse,
+			statusCode: 200,
+			security: ['bearerToken', 'sessionToken'],
+			tags: ['Invites'],
+		}),
+		async (ctx) => {
+			const userId = ctx.get('user').id;
+			const inviteRequestService = ctx.get('inviteRequestService');
+			const auditLogReason = ctx.get('auditLogReason');
+			return ctx.json(
+				await inviteRequestService.createInviteBundle(
+					{
+						inviterId: userId,
+						data: ctx.req.valid('json'),
+					},
+					auditLogReason,
+				),
 			);
 		},
 	);
