@@ -42,6 +42,7 @@ import {BadRequestError} from '@fluxer/errors/src/HttpErrors';
 import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
 import type {GuildPartialResponse, GuildResponse} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
 import type {ChannelPartialResponse} from '@fluxer/schema/src/domains/channel/ChannelSchemas';
+import type {GuildInviteBundle} from '../models/GuildInviteBundle';
 
 interface GetChannelInvitesParams {
 	userId: UserID;
@@ -385,6 +386,52 @@ export class InviteService {
 		return this.incrementInviteUses(invite, {deleteWhenExhausted: !isVanityInvite});
 	}
 
+	async acceptGuildInviteBundle(
+		userId: UserID,
+		inviteCode: InviteCode,
+		guildIds: Array<GuildID>,
+		requestCache: RequestCache,
+	): Promise<{
+		bundle: GuildInviteBundle;
+		num_expired: number;
+		invitesDisabledOrFeatureTemporarilyDisabled: Array<GuildID>;
+	}> {
+		const bundle = await this.getGuildInviteBundle(inviteCode);
+		let num_expired = 0;
+		const invitesDisabledOrFeatureTemporarilyDisabled: Array<GuildID> = [];
+		const invitesData: Array<{guildId: GuildID; code: InviteCode}> = [];
+		for (const guildId of guildIds) {
+			const inviteData = bundle.invites.find(({guild_id}) => guild_id === guildId);
+			if (!inviteData) {
+				throw new BadRequestError();
+			}
+			invitesData.push({guildId, code: inviteData.code});
+		}
+		for (const {code, guildId} of invitesData) {
+			try {
+				await this.acceptInvite({
+					userId,
+					inviteCode: code,
+					requestCache,
+				});
+			} catch (error) {
+				if (error instanceof UnknownInviteError) {
+					num_expired++;
+				} else if (error instanceof InvitesDisabledError || error instanceof FeatureTemporarilyDisabledError) {
+					invitesDisabledOrFeatureTemporarilyDisabled.push(guildId);
+				} else {
+					throw error;
+				}
+			}
+		}
+		// TODO: decrement
+		return {
+			bundle,
+			num_expired,
+			invitesDisabledOrFeatureTemporarilyDisabled,
+		};
+	}
+
 	private createRandomInviteCode(): InviteCode {
 		return createInviteCode(RandomUtils.randomString(8));
 	}
@@ -420,6 +467,18 @@ export class InviteService {
 			return null;
 		}
 		return this.inviteRepository.findUnique(lowercaseInviteCode);
+	}
+
+	private async findGuildInviteBundleWithLowercaseFallback(inviteCode: InviteCode): Promise<GuildInviteBundle | null> {
+		const invite = await this.inviteRepository.findUniqueGuildBundle(inviteCode);
+		if (invite) {
+			return invite;
+		}
+		const lowercaseInviteCode = createInviteCode(inviteCode.toLowerCase());
+		if (lowercaseInviteCode === inviteCode) {
+			return null;
+		}
+		return this.inviteRepository.findUniqueGuildBundle(lowercaseInviteCode);
 	}
 
 	private cloneInviteWithUses(invite: Invite, uses: number): Invite {
@@ -630,7 +689,7 @@ export class InviteService {
 			});
 			invites.push({invite, guildId, channelId: channel.id});
 		}
-		const inviteBundle = await this.inviteRepository.createBundle({
+		const inviteBundle = await this.inviteRepository.createGuildBundle({
 			code: this.createRandomInviteCode(),
 			max_uses: data.max_uses ?? 0,
 			max_age: data.max_age ?? 0,
@@ -666,9 +725,18 @@ export class InviteService {
 						};
 					})
 					.toArray(),
+				no_invite_available_count: 0,
 			},
 			invites: invites.map(({invite}) => invite),
 		};
+	}
+
+	async getGuildInviteBundle(inviteCode: InviteCode): Promise<GuildInviteBundle> {
+		const invite = await this.findGuildInviteBundleWithLowercaseFallback(inviteCode);
+		if (invite) {
+			return invite;
+		}
+		throw new UnknownInviteError();
 	}
 
 	private async logGuildInviteAction(params: {

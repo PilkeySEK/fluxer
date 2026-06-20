@@ -211,7 +211,7 @@ export class InviteRepository extends IInviteRepository {
 		await batch.execute();
 	}
 
-	override async createBundle(data: {
+	override async createGuildBundle(data: {
 		code: InviteCode;
 		max_uses: number;
 		max_age: number;

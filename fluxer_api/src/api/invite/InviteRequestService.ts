@@ -8,6 +8,7 @@ import type {
 	ChannelInviteCreateRequest,
 	GuildInviteBundleCreateRequest,
 	GuildInviteBundleMetadataResponse,
+	GuildInviteBundleResponse,
 	InviteMetadataResponseSchema,
 	InviteResponseSchema,
 	PackInviteCreateRequest,
@@ -31,6 +32,8 @@ import {
 	mapInviteToPackInviteResponse,
 } from './InviteModel';
 import type {InviteService} from './InviteService';
+import {UnknownGuildError} from '@fluxer/errors/src/domains/guild/UnknownGuildError';
+import type {Guild} from '../models/Guild';
 
 interface MappingHelpers {
 	userCacheService: UserCacheService;
@@ -171,15 +174,80 @@ export class InviteRequestService {
 		data: GuildInviteBundleCreateRequest;
 		requestCache: RequestCache;
 	}): Promise<GuildInviteBundleMetadataResponse> {
-		const {bundle, invites} = await this.inviteService.createInviteBundle(
-			params.inviterId,
-			params.data,
-		);
+		const {bundle, invites} = await this.inviteService.createInviteBundle(params.inviterId, params.data);
 		for (const invite of invites) {
 			const inviteData = await this.mapInviteMetadataResponse(invite, params.requestCache);
 			await this.inviteService.dispatchInviteCreate(invite, inviteData);
 		}
 		return bundle;
+	}
+
+	async acceptGuildInviteBundle(params: {
+		userId: UserID;
+		inviteCode: InviteCode;
+		guildIds: Array<GuildID>;
+		requestCache: RequestCache;
+	}): Promise<GuildInviteBundleResponse> {
+		const {bundle, num_expired, invitesDisabledOrFeatureTemporarilyDisabled} =
+			await this.inviteService.acceptGuildInviteBundle(
+				params.userId,
+				params.inviteCode,
+				params.guildIds,
+				params.requestCache,
+			);
+		const guilds: Array<{
+			guild: GuildPartialResponse;
+			channel?: ChannelPartialResponse | null;
+		}> = [];
+		for (const inviteData of bundle.invites) {
+			let guild: Guild;
+			try {
+				guild = await this.guildService.data.getGuildSystem(inviteData.guild_id);
+			} catch (error) {
+				if (error instanceof UnknownGuildError) {
+					continue;
+				}
+				throw error;
+			}
+			const channel = await this.channelService.channelData.operations.getChannelSystem(inviteData.channel_id);
+			guilds.push({
+				guild: {
+					id: guild.id.toString(),
+					name: guild.name,
+					icon: guild.iconHash,
+				} as GuildPartialResponse,
+				channel: channel
+					? ({
+							id: channel.id.toString(),
+							name: channel.name,
+							type: channel.type,
+						} as ChannelPartialResponse)
+					: undefined,
+			});
+		}
+		const invites_disabled = [];
+		for (const guildId of invitesDisabledOrFeatureTemporarilyDisabled) {
+			let guild: Guild;
+			try {
+				guild = await this.guildService.data.getGuildSystem(guildId);
+			} catch (error) {
+				if (error instanceof UnknownGuildError) {
+					continue;
+				}
+				throw error;
+			}
+			invites_disabled.push({
+				id: guild.id.toString(),
+				name: guild.name,
+				icon: guild.iconHash,
+			} as GuildPartialResponse);
+		}
+		return {
+			code: bundle.code,
+			guilds,
+			no_invite_available_count: num_expired,
+			invites_disabled,
+		};
 	}
 
 	private createMappingHelpers(requestCache: RequestCache): MappingHelpers {

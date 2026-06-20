@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ChannelID, GuildID, InviteCode, UserID} from '../BrandedTypes';
-import type { GuildInviteBundle } from '../models/GuildInviteBundle';
+import type {GuildInviteBundle} from '../models/GuildInviteBundle';
 import type {Invite} from '../models/Invite';
 
 export abstract class IInviteRepository {
@@ -27,7 +27,7 @@ export abstract class IInviteRepository {
 
 	abstract delete(code: InviteCode): Promise<void>;
 
-	abstract createBundle(data: {
+	abstract createGuildBundle(data: {
 		code: InviteCode;
 		max_uses: number;
 		max_age: number;
@@ -39,4 +39,6 @@ export abstract class IInviteRepository {
 		}>;
 		inviter_id: UserID;
 	}): Promise<GuildInviteBundle>;
+
+	abstract findUniqueGuildBundle(code: InviteCode): Promise<GuildInviteBundle | null>;
 }
