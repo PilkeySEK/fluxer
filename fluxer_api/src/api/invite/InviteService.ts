@@ -17,9 +17,9 @@ import {UnknownPackError} from '@fluxer/errors/src/domains/pack/UnknownPackError
 import type {
 	GroupDmInviteMetadataResponse,
 	GuildInviteMetadataResponse,
-	InviteBundleCreateRequest,
-	InviteBundleMetadataResponse,
+	GuildInviteBundleMetadataResponse,
 	PackInviteMetadataResponse,
+	GuildInviteBundleCreateRequest,
 } from '@fluxer/schema/src/domains/invite/InviteSchemas';
 import type {ApiContext} from '../ApiContext';
 import type {ChannelID, GuildID, InviteCode, UserID} from '../BrandedTypes';
@@ -41,7 +41,7 @@ import type {IInviteRepository} from './IInviteRepository';
 import {BadRequestError} from '@fluxer/errors/src/HttpErrors';
 import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
 import type {GuildPartialResponse, GuildResponse} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
-import type { ChannelPartialResponse } from '@fluxer/schema/src/domains/channel/ChannelSchemas';
+import type {ChannelPartialResponse} from '@fluxer/schema/src/domains/channel/ChannelSchemas';
 
 interface GetChannelInvitesParams {
 	userId: UserID;
@@ -571,9 +571,8 @@ export class InviteService {
 
 	async createInviteBundle(
 		inviterId: UserID,
-		data: InviteBundleCreateRequest,
-		auditLogReason?: string | null,
-	): Promise<{bundle: InviteBundleMetadataResponse; invites: Array<Invite>}> {
+		data: GuildInviteBundleCreateRequest,
+	): Promise<{bundle: GuildInviteBundleMetadataResponse; invites: Array<Invite>}> {
 		const channelsAndGuilds: Map<GuildID, [Channel, GuildResponse]> = new Map();
 		for (const channelIdString of data.channel_ids) {
 			const channelId = createChannelID(BigInt(channelIdString));
@@ -628,7 +627,6 @@ export class InviteService {
 				invite,
 				userId: inviterId,
 				action: 'create',
-				auditLogReason,
 			});
 			invites.push({invite, guildId, channelId: channel.id});
 		}
@@ -651,20 +649,23 @@ export class InviteService {
 				max_uses: inviteBundle.maxUses,
 				max_age: inviteBundle.maxAge,
 				code: inviteBundle.code,
-				guilds: channelsAndGuilds.values().map(([channel, guild]) => {
-					return {
-						guild: {
-							id: guild.id,
-							name: guild.name,
-							icon: guild.icon,
-						} as GuildPartialResponse,
-						channel: {
-							id: channel.id.toString(),
-							name: channel.name,
-							type: channel.type,
-						} as ChannelPartialResponse,
-					};
-				}).toArray(),
+				guilds: channelsAndGuilds
+					.values()
+					.map(([channel, guild]) => {
+						return {
+							guild: {
+								id: guild.id,
+								name: guild.name,
+								icon: guild.icon,
+							} as GuildPartialResponse,
+							channel: {
+								id: channel.id.toString(),
+								name: channel.name,
+								type: channel.type,
+							} as ChannelPartialResponse,
+						};
+					})
+					.toArray(),
 			},
 			invites: invites.map(({invite}) => invite),
 		};

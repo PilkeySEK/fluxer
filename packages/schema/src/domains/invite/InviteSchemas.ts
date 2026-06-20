@@ -210,7 +210,7 @@ export interface PackInvite extends InviteBase {
 
 export type Invite = GuildInvite | GroupDmInvite | PackInvite;
 
-export const InviteBundleCreateRequest = z.object({
+export const GuildInviteBundleCreateRequest = z.object({
 	max_uses: z
 		.number()
 		.int()
@@ -240,9 +240,9 @@ export const InviteBundleCreateRequest = z.object({
 		),
 });
 
-export type InviteBundleCreateRequest = z.infer<typeof InviteBundleCreateRequest>;
+export type GuildInviteBundleCreateRequest = z.infer<typeof GuildInviteBundleCreateRequest>;
 
-export const InviteBundleResponse = z.object({
+export const GuildInviteBundleResponse = z.object({
 	code: z.string().describe('The unique invite code'),
 	guilds: z
 		.array(
@@ -256,9 +256,9 @@ export const InviteBundleResponse = z.object({
 		.describe('The list of guild IDs and channel IDs which this bundle invites to'),
 });
 
-export type InviteBundleResponse = z.infer<typeof InviteBundleResponse>;
+export type GuildInviteBundleResponse = z.infer<typeof GuildInviteBundleResponse>;
 
-export const InviteBundleMetadataResponse = z
+export const GuildInviteBundleMetadataResponse = z
 	.object({
 		max_uses: z
 			.number()
@@ -277,6 +277,6 @@ export const InviteBundleMetadataResponse = z
 			.default(0)
 			.describe('Duration in seconds before the invite bundle expires (0 for never)'),
 	})
-	.extend(InviteBundleResponse.shape);
+	.extend(GuildInviteBundleResponse.shape);
 
-export type InviteBundleMetadataResponse = z.infer<typeof InviteBundleMetadataResponse>;
+export type GuildInviteBundleMetadataResponse = z.infer<typeof GuildInviteBundleMetadataResponse>;

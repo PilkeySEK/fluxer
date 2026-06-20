@@ -8,8 +8,8 @@ import {
 } from '@fluxer/schema/src/domains/common/CommonParamSchemas';
 import {
 	ChannelInviteCreateRequest,
-	InviteBundleCreateRequest,
-	InviteBundleMetadataResponse,
+	GuildInviteBundleCreateRequest,
+	GuildInviteBundleMetadataResponse,
 	InviteMetadataResponseSchema,
 	InviteResponseSchema,
 	PackInviteCreateRequest,
@@ -230,17 +230,17 @@ export function InviteController(app: HonoApp) {
 		},
 	);
 	app.post(
-		'/invite-bundles',
-		RateLimitMiddleware(RateLimitConfigs.INVITE_BUNDLE_CREATE),
+		'/guild-bundles',
+		RateLimitMiddleware(RateLimitConfigs.GUILD_INVITE_BUNDLE_CREATE),
 		LoginRequired,
 		DefaultUserOnly,
-		Validator('json', InviteBundleCreateRequest),
+		Validator('json', GuildInviteBundleCreateRequest),
 		OpenAPI({
-			operationId: 'create_invite_bundle',
-			summary: 'Create invite bundle',
+			operationId: 'create_guild_invite_bundle',
+			summary: 'Create guild invite bundle',
 			description:
 				'Creates a new invite bundle for the specified guild channels, with expiration and maximum uses parameters. The authenticated user must have permission to create invites for all of the guild channels and must be a default (non-bot) user. Returns the created invite metadata including the code.',
-			responseSchema: InviteBundleMetadataResponse,
+			responseSchema: GuildInviteBundleMetadataResponse,
 			statusCode: 200,
 			security: ['bearerToken', 'sessionToken'],
 			tags: ['Invites'],
@@ -248,17 +248,13 @@ export function InviteController(app: HonoApp) {
 		async (ctx) => {
 			const userId = ctx.get('user').id;
 			const inviteRequestService = ctx.get('inviteRequestService');
-			const auditLogReason = ctx.get('auditLogReason');
 			const requestCache = ctx.get('requestCache');
 			return ctx.json(
-				await inviteRequestService.createInviteBundle(
-					{
-						inviterId: userId,
-						data: ctx.req.valid('json'),
-						requestCache,
-						auditLogReason,
-					},
-				),
+				await inviteRequestService.createGuildInviteBundle({
+					inviterId: userId,
+					data: ctx.req.valid('json'),
+					requestCache,
+				}),
 			);
 		},
 	);

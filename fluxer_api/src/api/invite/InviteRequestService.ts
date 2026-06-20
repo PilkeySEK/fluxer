@@ -6,8 +6,8 @@ import type {ChannelPartialResponse} from '@fluxer/schema/src/domains/channel/Ch
 import type {GuildPartialResponse} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
 import type {
 	ChannelInviteCreateRequest,
-	InviteBundleCreateRequest,
-	InviteBundleMetadataResponse,
+	GuildInviteBundleCreateRequest,
+	GuildInviteBundleMetadataResponse,
 	InviteMetadataResponseSchema,
 	InviteResponseSchema,
 	PackInviteCreateRequest,
@@ -166,16 +166,14 @@ export class InviteRequestService {
 		return inviteData;
 	}
 
-	async createInviteBundle(params: {
+	async createGuildInviteBundle(params: {
 		inviterId: UserID;
-		data: InviteBundleCreateRequest;
+		data: GuildInviteBundleCreateRequest;
 		requestCache: RequestCache;
-		auditLogReason?: string | null;
-	}): Promise<InviteBundleMetadataResponse> {
+	}): Promise<GuildInviteBundleMetadataResponse> {
 		const {bundle, invites} = await this.inviteService.createInviteBundle(
 			params.inviterId,
 			params.data,
-			params.auditLogReason,
 		);
 		for (const invite of invites) {
 			const inviteData = await this.mapInviteMetadataResponse(invite, params.requestCache);
