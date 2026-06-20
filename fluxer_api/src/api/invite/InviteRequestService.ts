@@ -167,16 +167,21 @@ export class InviteRequestService {
 	}
 
 	async createInviteBundle(params: {
-		inviterId: UserID,
-		data: InviteBundleCreateRequest,
-	}, auditLogReason?: string | null): Promise<InviteBundleMetadataResponse> {
-		const invite = await this.inviteService.createInviteBundle(
+		inviterId: UserID;
+		data: InviteBundleCreateRequest;
+		requestCache: RequestCache;
+		auditLogReason?: string | null;
+	}): Promise<InviteBundleMetadataResponse> {
+		const {bundle, invites} = await this.inviteService.createInviteBundle(
 			params.inviterId,
 			params.data,
-			auditLogReason,
+			params.auditLogReason,
 		);
-		// TODO: Dispatch via gateway
-		return invite;
+		for (const invite of invites) {
+			const inviteData = await this.mapInviteMetadataResponse(invite, params.requestCache);
+			await this.inviteService.dispatchInviteCreate(invite, inviteData);
+		}
+		return bundle;
 	}
 
 	private createMappingHelpers(requestCache: RequestCache): MappingHelpers {

@@ -573,7 +573,7 @@ export class InviteService {
 		inviterId: UserID,
 		data: InviteBundleCreateRequest,
 		auditLogReason?: string | null,
-	): Promise<InviteBundleMetadataResponse> {
+	): Promise<{bundle: InviteBundleMetadataResponse; invites: Array<Invite>}> {
 		const channelsAndGuilds: Map<GuildID, [Channel, GuildResponse]> = new Map();
 		for (const channelIdString of data.channel_ids) {
 			const channelId = createChannelID(BigInt(channelIdString));
@@ -607,7 +607,11 @@ export class InviteService {
 			}
 			channelsAndGuilds.set(channel.guildId, [channel, guildData]);
 		}
-		const invites: Array<Invite> = [];
+		const invites: Array<{
+			invite: Invite;
+			guildId: GuildID;
+			channelId: ChannelID;
+		}> = [];
 		for (const [guildId, [channel, _guild]] of channelsAndGuilds) {
 			const invite = await this.inviteRepository.create({
 				code: this.createRandomInviteCode(),
@@ -626,27 +630,43 @@ export class InviteService {
 				action: 'create',
 				auditLogReason,
 			});
-			invites.push(invite);
+			invites.push({invite, guildId, channelId: channel.id});
 		}
-		// TODO: Actually create it in the database (and send code)
-		return {
-			max_uses: data.max_uses,
-			max_age: data.max_age,
-			guilds: channelsAndGuilds.values().map(([channel, guild]) => {
+		const inviteBundle = await this.inviteRepository.createBundle({
+			code: this.createRandomInviteCode(),
+			max_uses: data.max_uses ?? 0,
+			max_age: data.max_age ?? 0,
+			uses: 0,
+			invites: invites.map(({invite, guildId, channelId}) => {
 				return {
-					guild: {
-						id: guild.id,
-						name: guild.name,
-						icon: guild.icon,
-					} as GuildPartialResponse,
-					channel: {
-						id: channel.id.toString(),
-						name: channel.name,
-						type: channel.type,
-						recipients: undefined,
-					} as ChannelPartialResponse,
+					guild_id: guildId,
+					channel_id: channelId,
+					code: invite.code,
 				};
-			}).toArray(),
+			}),
+			inviter_id: inviterId,
+		});
+		return {
+			bundle: {
+				max_uses: inviteBundle.maxUses,
+				max_age: inviteBundle.maxAge,
+				code: inviteBundle.code,
+				guilds: channelsAndGuilds.values().map(([channel, guild]) => {
+					return {
+						guild: {
+							id: guild.id,
+							name: guild.name,
+							icon: guild.icon,
+						} as GuildPartialResponse,
+						channel: {
+							id: channel.id.toString(),
+							name: channel.name,
+							type: channel.type,
+						} as ChannelPartialResponse,
+					};
+				}).toArray(),
+			},
+			invites: invites.map(({invite}) => invite),
 		};
 	}
 

@@ -243,6 +243,7 @@ export const InviteBundleCreateRequest = z.object({
 export type InviteBundleCreateRequest = z.infer<typeof InviteBundleCreateRequest>;
 
 export const InviteBundleResponse = z.object({
+	code: z.string().describe('The unique invite code'),
 	guilds: z
 		.array(
 			z.object({

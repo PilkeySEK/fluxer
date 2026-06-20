@@ -249,13 +249,15 @@ export function InviteController(app: HonoApp) {
 			const userId = ctx.get('user').id;
 			const inviteRequestService = ctx.get('inviteRequestService');
 			const auditLogReason = ctx.get('auditLogReason');
+			const requestCache = ctx.get('requestCache');
 			return ctx.json(
 				await inviteRequestService.createInviteBundle(
 					{
 						inviterId: userId,
 						data: ctx.req.valid('json'),
+						requestCache,
+						auditLogReason,
 					},
-					auditLogReason,
 				),
 			);
 		},
