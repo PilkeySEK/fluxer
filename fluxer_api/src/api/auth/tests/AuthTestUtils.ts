@@ -5,6 +5,7 @@ import {decode as base32Decode, encode as base32Encode} from 'hi-base32';
 import {type ApiTestHarness, createApiTestHarness} from '../../test/ApiTestHarness';
 import {TEST_CREDENTIALS, TEST_USER_DATA} from '../../test/TestConstants';
 import {createBuilder} from '../../test/TestRequestBuilder';
+import type { AuthMfaMethod } from '@fluxer/schema/src/domains/auth/AuthSchemas';
 
 interface RegisterResponse {
 	user_id: string;
@@ -19,7 +20,7 @@ export interface LoginSuccessResponse {
 export interface LoginMfaResponse {
 	mfa: true;
 	ticket: string;
-	allowed_methods: Array<string>;
+	allowed_methods: Array<AuthMfaMethod>;
 	totp: boolean;
 	webauthn: boolean;
 }
@@ -32,7 +33,7 @@ type LoginResponse =
 	| {
 			mfa: true;
 			ticket: string;
-			allowed_methods: Array<string>;
+			allowed_methods: Array<AuthMfaMethod>;
 			totp: boolean;
 			webauthn: boolean;
 	  };
