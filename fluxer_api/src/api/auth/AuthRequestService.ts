@@ -407,8 +407,6 @@ export class AuthRequestService {
 		if (!('mfa' in result)) {
 			return await this.toAuthTokenResponse(result);
 		}
-		return {
-			...result,
-		};
+		return result;
 	}
 }
