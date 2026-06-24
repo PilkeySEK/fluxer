@@ -21,8 +21,6 @@ export interface LoginMfaResponse {
 	mfa: true;
 	ticket: string;
 	allowed_methods: Array<AuthMfaMethod>;
-	totp: boolean;
-	webauthn: boolean;
 }
 
 type LoginResponse =
@@ -34,8 +32,6 @@ type LoginResponse =
 			mfa: true;
 			ticket: string;
 			allowed_methods: Array<AuthMfaMethod>;
-			totp: boolean;
-			webauthn: boolean;
 	  };
 
 export interface UserMeResponse {
