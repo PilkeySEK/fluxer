@@ -164,7 +164,7 @@ export const AuthRegistrationPendingApprovalResponse = z.object({
 
 export type AuthRegistrationPendingApprovalResponse = z.infer<typeof AuthRegistrationPendingApprovalResponse>;
 
-export const AuthMfaMethod = z.enum(["totp", "webauthn"]);
+export const AuthMfaMethod = z.enum(['totp', 'webauthn']);
 
 export type AuthMfaMethod = z.infer<typeof AuthMfaMethod>;
 

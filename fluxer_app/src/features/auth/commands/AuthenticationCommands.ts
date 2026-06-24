@@ -22,7 +22,7 @@ import type {
 } from '@fluxer/schema/src/domains/auth/AuthSchemas';
 import type {UserPartial} from '@fluxer/schema/src/domains/user/UserResponseSchemas';
 import type {AuthenticationResponseJSON, PublicKeyCredentialRequestOptionsJSON} from '@simplewebauthn/browser';
-import { AuthMfaMethod } from '../../../../../packages/schema/src/domains/auth/AuthSchemas';
+import type {AuthMfaMethod} from '../../../../../packages/schema/src/domains/auth/AuthSchemas';
 
 const logger = new Logger('AuthService');
 const getPlatformHeaderValue = (): 'web' | 'desktop' | 'mobile' => (isDesktop() ? 'desktop' : 'web');

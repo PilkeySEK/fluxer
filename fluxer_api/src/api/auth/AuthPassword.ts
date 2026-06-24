@@ -8,7 +8,11 @@ import {InputValidationError} from '@fluxer/errors/src/domains/core/InputValidat
 import {RateLimitError} from '@fluxer/errors/src/domains/core/RateLimitError';
 import {requireClientIp} from '@fluxer/ip_utils/src/ClientIp';
 import {getSameIpDecisionKey} from '@fluxer/ip_utils/src/IpAddress';
-import type {AuthMfaMethod, ForgotPasswordRequest, ResetPasswordRequest} from '@fluxer/schema/src/domains/auth/AuthSchemas';
+import type {
+	AuthMfaMethod,
+	ForgotPasswordRequest,
+	ResetPasswordRequest,
+} from '@fluxer/schema/src/domains/auth/AuthSchemas';
 import {ms, seconds} from 'itty-time';
 import type {ApiContext} from '../ApiContext';
 import {createMfaTicket, createPasswordResetToken} from '../BrandedTypes';
